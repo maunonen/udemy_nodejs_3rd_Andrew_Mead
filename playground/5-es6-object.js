@@ -35,7 +35,7 @@ console.log(user)
 console.log(productLabel)
 console.log(salePrice)
 
-const  transaction = (type , {label, stock}) => {
+const  transaction = (type , {label = '', stock = 111} = {}) => {
 
     console.log(label)
     console.log(stock)
