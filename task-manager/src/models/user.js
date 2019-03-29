@@ -1,20 +1,25 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
+const bcrypt = require('bcryptjs')
+const uniqueValidator = require('mongoose-unique-validator')
+const jwt = require('jsonwebtoken')
+ 
 
-const User = mongoose.model('User', {
+const userSchema = new mongoose.Schema({
     name : {
         type : String, 
         required : true, 
         trim : true
     }, 
     email : {
-        type : String , 
+        type : String, 
+        unique : true,  
         required : true, 
         trim : true, 
         lowercase : true, 
         validate(value){
             if (!validator.isEmail(value)){
-                throw new Error('Email is envalid')
+                throw new Error('Email is invalid')
             }
         }   
     }, 
@@ -38,7 +43,88 @@ const User = mongoose.model('User', {
                     throw new Error('Password can not contained "password"')
             }
         }
+    }, 
+    tokens : [{
+        token : {
+            type : String , 
+                required : true
+        }
+    }]
+}) 
+
+userSchema.plugin(uniqueValidator)
+
+// statics method are accessible on a model  
+userSchema.statics.findByCredential = async (email, password) => {
+    const user = await User.findOne({ email})
+    if (!user){
+        throw new Error( "Unable to login")
     }
+    const isMatch = await bcrypt.compare(password, user.password)
+
+    if (!isMatch){
+        throw new Error( "Unable to login")
+    }
+    return user
+}
+
+
+
+
+
+
+
+
+// in this example we should use this binding, 
+// for this reason we use async function not arrrow function 
+// methods are accessible on instance model 
+
+userSchema.methods.generateAuthToken = async function(){
+
+    const user = this
+    // generate token
+    try {
+        const token = jwt.sign({ _id : user._id.toString()}, 'token')
+        // add token to user model 
+        user.tokens = user.tokens.concat({ token })
+        await user.save()
+        return token 
+    } catch (e){
+        throw new Error(e)
+    }
+}
+
+userSchema.methods.toJSON = function(){
+    
+    const user = this
+    // toObject() allow to get raw object with user data and then manipulate with this data
+    const userObject = user.toObject()
+    
+    delete userObject.password
+    delete userObject.tokens
+
+    //console.log(userObject)
+    
+    return userObject
+}
+
+// HASH the pålai text password before saving 
+// pre - doing before action 
+// post - doing after action 
+// we are uising regular function due to the binding 
+// next - continune move 
+userSchema.pre('save', async function(next){
+    // this give ccess to individual user
+    const user = this
+    
+    if (user.isModified('password')){
+        user.password = await bcrypt.hash(user.password, 8)
+    }
+
+    next()
+
 })
+
+const User = mongoose.model('User', userSchema)
 
 module.exports = User
