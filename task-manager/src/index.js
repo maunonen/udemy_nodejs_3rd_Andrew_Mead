@@ -30,7 +30,24 @@ app.listen(port, ()=> {
     console.log('Server is up on port ', port)
 })
 
-const jwt = require('jsonwebtoken')
+const Task = require('./models/task')
+const User = require('./models/user')
+/* 
+const main = async () => {
+
+    const user = await User.findById('5ca1e62a0572bf3e93632563')
+    await user.populate('tasks').execPopulate('')
+    console.log(user.tasks)
+
+    /*     const task = await Task.findById('5ca1e733b97ebb3edf77d357')
+    await task.populate('owner').execPopulate()
+    console.log(task.owner) */
+/* }  */
+
+/* main()  */ 
+
+
+/* const jwt = require('jsonwebtoken')
 
 
 const myFunction = async () => {
@@ -43,10 +60,10 @@ const pet = {
 pet.toJSON = function ()  {
     console.log(this)
     return {}
-}
+} */
 
 
-console.log(JSON.stringify(pet))
+/* console.log(JSON.stringify(pet)) */
 
 
     //const password = 'Red12345!'
@@ -70,5 +87,5 @@ console.log(JSON.stringify(pet))
         console.log(hashedPass)
         const isMatch = await bcrypt.compare('Red12345!', hashedPass)
         console.log(isMatch) */
-}
-myFunction()
+/* }
+myFunction() */
