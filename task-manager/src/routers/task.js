@@ -4,14 +4,47 @@ const router = new express.Router()
 const auth = require('../middleware/auth')
 
 
+// GET /tasks?completed=true
+// GET /tasks?limit=2&skip=2
+// GET /tasks?sortBy=createdAt_desc
+
 router.get('/tasks', auth, async (req, res) => {
+
+    const match = {}
+    const sort ={}
+
+    if(req.query.completed){
+        match.completed = req.query.completed === 'true'
+    }
+    if(req.query.sortBy){
+        const parts = req.query.sortBy.split(':')
+        
+        // creating sort object from query request 
+        /* sort :{
+            createdAt : -1 
+        } */
+        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1
+    }
 
     try {
         //const tasks =  await Task.find({})
         // const tasks = await Task.find({ owner : req.user._id})
 
         // populate us with 'tasks' array from ref instance in the 
-        await req.user.populate('tasks').execPopulate('')
+        //await req.user.populate('tasks').execPopulate('')
+        await req.user.populate({
+            path : 'tasks', 
+            match, 
+            options : {
+                limit : parseInt(req.query.limit), 
+                skip : parseInt(req.query.skip), 
+                sort
+             /*    sort :{
+                    //createdAt : -1 
+                    completed : -1
+                } */
+            }
+        }).execPopulate('')
         res.status(200).send(req.user.tasks)
     } catch (e){
         res.status(500).send(e)
