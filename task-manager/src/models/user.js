@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 const uniqueValidator = require('mongoose-unique-validator')
 const jwt = require('jsonwebtoken')
 const Task = require('./task')
-const sharp = require('sharp')
+
  
 
 const userSchema = new mongoose.Schema({
@@ -100,7 +100,7 @@ userSchema.methods.generateAuthToken = async function(){
     const user = this
     // generate token
     try {
-        const token = jwt.sign({ _id : user._id.toString()}, 'token')
+        const token = jwt.sign({ _id : user._id.toString()}, process.env.JWT_SECRET)
         // add token to user model 
         user.tokens = user.tokens.concat({ token })
         await user.save()
